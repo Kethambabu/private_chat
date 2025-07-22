@@ -34,11 +34,11 @@ const sendBtn = document.getElementById("send-btn");
 const clearBtn = document.getElementById("clear-btn");
 
 // Prompt for username
-const allowedUsers = ["user1", "user2"];
-let currentUser = prompt("Enter your username (user1/user2):");
+const allowedUsers = ["balu", "varshi"];
+let currentUser = prompt("Enter your usernam:");
 
 while (!allowedUsers.includes(currentUser)) {
-  currentUser = prompt("Only user1 or user2 allowed. Re-enter username:");
+  currentUser = prompt("Only specific users allowed. Re-enter username:");
 }
 
 const messagesRef = collection(db, "messages");
