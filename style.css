@@ -1,0 +1,63 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background-color: #f1f1f1;
+}
+
+#chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.message {
+  margin: 10px 0;
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  position: relative;
+  clear: both;
+}
+
+.message.left {
+  background-color: #e0e0e0;
+  float: left;
+}
+
+.message.right {
+  background-color: #a0e7e5;
+  float: right;
+  text-align: right;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 14px;
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  cursor: pointer;
+}
