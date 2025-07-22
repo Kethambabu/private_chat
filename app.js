@@ -1,85 +1,93 @@
+// Firebase SDK imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, onSnapshot, serverTimestamp,
-  query, orderBy, deleteDoc, doc, getDocs
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  serverTimestamp,
+  query,
+  orderBy,
+  deleteDoc,
+  doc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAc-bbRwur69BIP_gjrUX52UZNxKG-51zo",
   authDomain: "privatechat-bcba3.firebaseapp.com",
   projectId: "privatechat-bcba3",
-  storageBucket: "privatechat-bcba3.firebasestorage.app",
+  storageBucket: "privatechat-bcba3.appspot.com",
   messagingSenderId: "836428875821",
-  appId: "1:836428875821:web:63f90df52d25638ca2d0a4"
+  appId: "1:836428875821:web:63f90df52d25638ca2d0a4",
+  measurementId: "G-G0CCPH91RR"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Get elements
+const chatBox = document.getElementById("chat-box");
+const messageInput = document.getElementById("message-input");
+const sendBtn = document.getElementById("send-btn");
+const clearBtn = document.getElementById("clear-btn");
+
+// Current user (manual for now — in production, use login)
+const currentUser = prompt("Enter your username:");
+
+// Firestore collection reference
 const messagesRef = collection(db, "messages");
-const usersRef = collection(db, "chat_users");
-let userDocId = null;
 
-async function checkUserLimit() {
-  const snapshot = await getDocs(usersRef);
-  if (snapshot.size >= 2) {
-    alert("Chat is full! Only 2 users allowed.");
-    document.body.innerHTML = "<h2 style='text-align:center;'>Chat is full. Try again later.</h2>";
-    return false;
-  }
-  const userDoc = await addDoc(usersRef, {
-    joinedAt: serverTimestamp()
+// Real-time listener with timestamp ordering
+const q = query(messagesRef, orderBy("timestamp"));
+onSnapshot(q, (snapshot) => {
+  chatBox.innerHTML = "";
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const msg = document.createElement("div");
+    msg.classList.add("message");
+
+    const text = document.createElement("p");
+    text.textContent = `${data.username}: ${data.text}`;
+
+    // Delete button
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "🗑";
+    delBtn.classList.add("delete-btn");
+    delBtn.onclick = async () => {
+      if (confirm("Delete this message?")) {
+        await deleteDoc(doc(db, "messages", docSnap.id));
+      }
+    };
+
+    msg.appendChild(text);
+    if (data.username === currentUser) msg.appendChild(delBtn);
+    chatBox.appendChild(msg);
   });
-  userDocId = userDoc.id;
-  return true;
-}
-
-window.addEventListener("beforeunload", async () => {
-  if (userDocId) {
-    await deleteDoc(doc(db, "chat_users", userDocId));
-  }
+  chatBox.scrollTop = chatBox.scrollHeight;
 });
 
-checkUserLimit().then((allowed) => {
-  if (!allowed) return;
-
-  const chatBox = document.getElementById("chat-box");
-  const messageInput = document.getElementById("message-input");
-
-  const q = query(messagesRef, orderBy("timestamp"));
-  onSnapshot(q, (snapshot) => {
-    chatBox.innerHTML = "";
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const msg = document.createElement("div");
-      msg.classList.add("chat-message");
-      msg.innerHTML = \`
-        <span>\${data.text}</span>
-        <button class="del-btn" onclick="deleteMessage('\${docSnap.id}')">🗑️</button>
-      \`;
-      chatBox.appendChild(msg);
+// Send message
+sendBtn.onclick = async () => {
+  const text = messageInput.value.trim();
+  if (text) {
+    await addDoc(messagesRef, {
+      text,
+      username: currentUser,
+      timestamp: serverTimestamp()
     });
-    chatBox.scrollTop = chatBox.scrollHeight;
-  });
+    messageInput.value = "";
+  }
+};
 
-  window.sendMessage = async () => {
-    const text = messageInput.value.trim();
-    if (text !== "") {
-      await addDoc(messagesRef, {
-        text,
-        timestamp: serverTimestamp()
-      });
-      messageInput.value = "";
-    }
-  };
-
-  window.deleteMessage = async (id) => {
-    await deleteDoc(doc(db, "messages", id));
-  };
-
-  window.clearChat = async () => {
+// Clear chat (admin only or same user check)
+clearBtn.onclick = async () => {
+  if (confirm("Clear all messages?")) {
     const allDocs = await getDocs(messagesRef);
-    allDocs.forEach(async (d) => {
-      await deleteDoc(doc(db, "messages", d.id));
+    allDocs.forEach(async (docSnap) => {
+      await deleteDoc(doc(db, "messages", docSnap.id));
     });
-  };
-});
+  }
+};
