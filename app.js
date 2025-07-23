@@ -34,7 +34,7 @@ const sendBtn = document.getElementById("send-btn");
 const clearBtn = document.getElementById("clear-btn");
 
 // Prompt for username
-const allowedUsers = ["balu", "varshi"];
+const allowedUsers = ["balu", "user2"];
 let currentUser = prompt("Enter your username:");
 
 while (!allowedUsers.includes(currentUser)) {
